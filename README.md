@@ -22,45 +22,13 @@ A secure, modular, and role-based backend API for a parcel delivery system inspi
 
 ```
 src/
-├── app/
-│   ├── config/
-│   │   └── env.ts
-│   │   └── ...
-│   ├── errorHelpers/
-│   │   └── AppError.ts
-│   ├── helpers/
-│   │   ├── handleCastError.ts
-│   │   ├── handleValidationError.ts
-│   │   ├── handleZodError.ts
-│   │   └── handleDuplicateError.ts
-│   ├── interfaces/
-│   │   ├── error.types.ts
-│   │   └── index.d.ts
-│   ├── middlewares/
-│   │   ├── checkAuth.ts
-│   │   ├── globalErrorHandler.ts
-│   │   ├── notFound.ts
-│   │   └── validateRequest.ts
-│   ├── modules/
-│   │   └── user/
-│   │       ├── user.controller.ts
-│   │       ├── user.interface.ts
-│   │       ├── user.model.ts
-│   │       ├── user.route.ts
-│   │       ├── user.service.ts
-│   │       └── user.validation.ts
-│   ├── routes/
-│   │   └── index.ts
-│   ├── utils/
-│   │   ├── catchAsync.ts
-│   │   ├── getTransactionId.ts
-│   │   ├── jwt.ts
-│   │   ├── QueryBuilder.ts
-│   │   ├── seedSuperAdmin.ts
-│   │   ├── sendResponses.ts
-│   │   ├── setCookie.ts
-│   │   └── userToken.ts
-│   └── constants.ts
+├── modules/
+│ ├── auth/
+│ ├── user/
+│ └── parcel/
+├── middlewares/
+├── utils/
+├── config/
 ├── app.ts
 └── server.ts
 ```
@@ -217,7 +185,7 @@ Be sure to record a 5–10 minute walkthrough as required:
 ## 🧠 Author
 
 - Project: **Mama Parcel**
-- Built by: *Your Name Here*
+- Built by: *Md. Habibullah*
 - License: MIT
 
 ---
