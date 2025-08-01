@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express"
 import { catchAsync } from "../../utils/catchAsync"
-import { UserServices } from "../user/user.service"
 import { sendResponse } from "../../utils/sendResponse"
 import httpStatus from 'http-status-codes'
 import { AuthServices } from "./auth.service"
@@ -23,23 +22,23 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
 
         if (!user) {
             // return new AppError(404, 'User does not exist')
-            return next(new AppError(404, info.message))
+            return next(new AppError(httpStatus.BAD_REQUEST, info.message))
         }
 
-        const userTokens = await createUserToken(user)
+        const { accessToken, refreshToken } = await createUserToken(user)
 
         // delete user.toObject().password
         const { password: userpass, ...users } = user.toObject()
 
-        setAuthCookie(res, user)
+        setAuthCookie(res, { accessToken, refreshToken })
 
         sendResponse(res, {
             statusCode: httpStatus.OK,
             message: 'User Login Successfully',
             success: true,
             data: {
-                accessToken: userTokens.accessToken,
-                refreshToken: userTokens.refreshToken,
+                accessToken,
+                refreshToken,
                 user: users
             },
         })
@@ -52,7 +51,7 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
 
 const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    const refreshToken = req.cookies?.refreshToken
+    const refreshToken = req.cookies?.refreshToken;
 
     if (!refreshToken) {
         throw new AppError(httpStatus.BAD_REQUEST, 'No refresh token from cookies ')
