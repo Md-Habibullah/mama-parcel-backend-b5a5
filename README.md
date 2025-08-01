@@ -168,20 +168,6 @@ A default super admin will be created if one does not exist.
 
 ---
 
-## 🎥 Demo Video (Required)
-
-Be sure to record a 5–10 minute walkthrough as required:
-
-1. **Intro (30s)** – Name, project, purpose
-2. **Structure (1 min)** – Walkthrough `src/`
-3. **Auth Flow (1 min)** – Register/Login
-4. **Sender (1 min)** – Create, cancel parcel
-5. **Receiver (1 min)** – Track, confirm parcel
-6. **Admin (1 min)** – View, block, update status
-7. **Postman (3–4 min)** – Show all APIs tested
-
----
-
 ## 🧠 Author
 
 - Project: **Mama Parcel**
