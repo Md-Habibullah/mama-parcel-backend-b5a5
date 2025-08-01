@@ -7,35 +7,12 @@ import { sendResponse } from "../../utils/sendResponse";
 import { verifyToken } from "../../utils/jwt";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
-// import AppError from "../../errorHelpers/AppError";
 
-
-// const createUser = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         // throw new AppError(400, 'error from AppError')
-//         // throw new Error('error from Error')
-//         const user = await UserServices.createUser(req.body)
-
-//         res.status(httpStatus.CREATED).json({
-//             message: 'User created successfully',
-//             user
-//         })
-
-//     } catch (err: any) {
-//         // eslint-disable-next-line no-console
-//         console.log(err.name)
-//         next(err)
-//         // res.status(400).json({ m: err.message, err })
-//     }
-// }
 
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
     const user = await UserServices.createUser(req.body)
 
-    // res.status(httpStatus.CREATED).json({
-    //     message: 'User created successfully',
-    //     user
-    // })
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
         message: 'User created successfully',
@@ -43,6 +20,18 @@ const createUser = catchAsync(async (req: Request, res: Response, next: NextFunc
         data: user,
     })
 })
+
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+    const userId = (req.user as JwtPayload).userId;
+    const user = await UserServices.getUserById(userId);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        message: 'Profile retrieved successfully',
+        success: true,
+        data: user,
+    });
+});
 
 const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.getAllUsers();
@@ -62,16 +51,10 @@ const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFun
 
 const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.params.id;
-    // const token = req.headers.authorization;
-    // const verifiedToken = (verifyToken(token as string, envVars.JWT_ACCESS_SECRET)) as JwtPayload
     const verifiedToken = req.user as JwtPayload
     const payload = req.body;
     const user = await UserServices.updateUser(userId, payload, verifiedToken)
 
-    // res.status(httpStatus.CREATED).json({
-    //     message: 'User created successfully',
-    //     user
-    // })
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
         message: 'User updated successfully',
@@ -80,8 +63,38 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     })
 })
 
+const blockUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const userId = req.params.id;
+    const decodedId = (req.user as JwtPayload).userId
+
+    const result = await UserServices.blockUser(userId, decodedId)
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        message: 'User blocked successfully',
+        success: true,
+        data: result,
+    })
+})
+
+const unblockUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const userId = req.params.id;
+
+    const result = await UserServices.unblockUser(userId)
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        message: 'User unblocked successfully',
+        success: true,
+        data: result,
+    })
+})
+
 export const userControllers = {
     createUser,
+    getMyProfile,
     getAllUsers,
-    updateUser
+    updateUser,
+    blockUser,
+    unblockUser
 }

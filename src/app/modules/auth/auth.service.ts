@@ -6,10 +6,6 @@ import bcryptjs from 'bcryptjs'
 import { createNewAccessTokenWithRefreshToken, createUserToken } from "../../utils/userToken"
 import { JwtPayload } from "jsonwebtoken"
 import { envVars } from "../../config/env"
-// import { JwtPayload } from "jsonwebtoken"
-// import { generateToken, verifyToken } from "../../utils/jwt"
-// import { envVars } from "../../config/env"
-// import { JwtPayload } from "jsonwebtoken"
 
 const credentialsLogin = async (payload: Partial<IUser>) => {
     const { email, password } = payload
@@ -19,26 +15,15 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
         throw new AppError(httpStatus.BAD_REQUEST, 'Email does not exist')
     }
 
+    if (isUserExist.isActive === 'BLOCKED' || isUserExist.isDeleted) {
+        throw new AppError(httpStatus.FORBIDDEN, 'User is blocked or deleted');
+    }
+
     const isPasswordMatch = await bcryptjs.compare(password as string, isUserExist.password as string)
 
     if (!isPasswordMatch) {
         throw new AppError(httpStatus.BAD_REQUEST, 'Incorrect Password')
     }
-
-    // const jwtPayload = {
-    //     userId: isUserExist._id,
-    //     email: isUserExist.email,
-    //     role: isUserExist.role
-    // }
-
-    // const accessToken = jwt.sign(jwtPayload, 'secrect', {
-    //     expiresIn: '1d'
-    // })
-
-    // const accessToken = generateToken(jwtPayload, envVars.JWT_ACCESS_SECRET, envVars.JWT_ACCESS_EXPIRES)
-
-    // const refreshToken = generateToken(jwtPayload, envVars.JWT_REFRESH_SECRET, envVars.JWT_REFRESH_EXPIRES)
-
 
     const userToken = createUserToken(isUserExist)
 

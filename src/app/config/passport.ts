@@ -15,21 +15,20 @@ passport.use(
     }, async (email: string, password: string, done) => {
         try {
             const isUserExist = await User.findOne({ email })
+
             if (!isUserExist) {
                 return done(null, false, { message: 'User does not exist' })
-                // return done('User does not exist')
+            }
+
+            if (isUserExist.isActive === 'BLOCKED') {
+                return done(null, false, { message: 'User is blocked' });
             }
 
             const isGoogleAuthenticated = isUserExist.auths.some(providerObjects => providerObjects.provider === 'google')
 
-
             if (isGoogleAuthenticated && !isUserExist.password) {
                 return done(null, false, { message: 'You have authenticated with google login so if you have to login with credentials you need to set a password' })
             }
-
-            // if (isGoogleAuthenticated) {
-            //     return done("You have authenticated with google login so if you have to login with credentials you need to set a password")
-            // }
 
             const isPasswordMatch = await bcryptjs.compare(password as string, isUserExist.password as string)
 
@@ -40,7 +39,6 @@ passport.use(
             return done(null, isUserExist)
 
         } catch (error) {
-            // console.log(error)
             done(error)
         }
     })
@@ -67,7 +65,7 @@ passport.use(
                         email,
                         name: profile.displayName,
                         picture: profile.photos?.[0].value,
-                        role: Role.USER,
+                        role: Role.SENDER,
                         isVerified: true,
                         auths: [{
                             provider: 'google',

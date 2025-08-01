@@ -10,7 +10,6 @@ export class QueryBuilder<T> {
         this.query = query;
     }
 
-
     filter(): this {
         const filter = { ...this.query }
 
