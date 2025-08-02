@@ -116,18 +116,24 @@ npm run dev
 
 ---
 
-## 📦 Parcel Endpoints
+## 📦 **Parcel Endpoints**
 
-| Method | Endpoint                      | Description                             |
-| ------ | ----------------------------- | --------------------------------------- |
-| POST   | `/api/v1/parcels`             | Create a new parcel (sender only)       |
-| GET    | `/api/v1/parcels`             | Get all parcels (admin only)            |
-| GET    | `/api/v1/parcels/me`          | Get sender's own parcels                |
-| GET    | `/api/v1/parcels/incoming`    | Get receiver's incoming parcels         |
-| GET    | `/api/v1/parcels/:id`         | Get specific parcel by ID               |
-| PATCH  | `/api/v1/parcels/:id/status`  | Update status (admin only)              |
-| PATCH  | `/api/v1/parcels/:id/cancel`  | Cancel parcel (sender only)             |
-| PATCH  | `/api/v1/parcels/:id/confirm` | Confirm parcel delivery (receiver only) |
+| Method  | Endpoint                          | Description                                         | Access Roles                              |
+| ------- | --------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| **POST**  | `/api/v1/parcels`                   | Create a new parcel                                  | **Sender**                                |
+| **GET**   | `/api/v1/parcels`                   | Get all parcels (with filters, search, pagination)   | **Admin / Super Admin**                   |
+| **GET**   | `/api/v1/parcels/me`                | Get parcels created by the authenticated sender      | **Sender**                                |
+| **GET**   | `/api/v1/parcels/incoming`          | Get parcels assigned to the authenticated receiver   | **Receiver**                              |
+| **GET**   | `/api/v1/parcels/history`           | Get delivered parcels (receiver's delivery history)  | **Receiver**                              |
+| **GET**   | `/api/v1/parcels/:id`               | Get a specific parcel by ID                          | **Admin / Super Admin / Sender / Receiver** |
+| **GET**   | `/api/v1/parcels/track/:trackingId` | Track parcel using tracking ID                       | **Public**                                |
+| **PATCH** | `/api/v1/parcels/:id/status`        | Update status (Dispatched, In-Transit, Delivered, etc.) | **Admin / Super Admin**                   |
+| **PATCH** | `/api/v1/parcels/:id/block`         | Block or unblock a parcel                            | **Admin / Super Admin**                   |
+| **PATCH** | `/api/v1/parcels/:id/cancel`        | Cancel parcel                                       | **Sender**                                |
+| **PATCH** | `/api/v1/parcels/:id/confirm`       | Confirm parcel delivery                              | **Receiver**                              |
+| **PATCH** | `/api/v1/parcels/:id/return`        | Return parcel                                        | **Receiver / Admin / Super Admin**        |
+| **GET**   | `/api/v1/parcels/stats`             | Parcel statistics overview (total, delivered, canceled, etc.) | **Admin / Super Admin**            |
+
 
 ---
 
