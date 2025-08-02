@@ -26,6 +26,8 @@ router.get("/stats", checkAuth(Role.ADMIN, Role.SUPER_ADMIN), ParcelControllers.
 // for all
 router.get("/:id", checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.SENDER, Role.RECEIVER), ParcelControllers.getParcelById);
 router.get("/track/:trackingId", ParcelControllers.trackParcel);
+
+// admin and receiver
 router.patch("/return/:id", checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.RECEIVER), ParcelControllers.returnParcel);
 
 export const ParcelRoutes = router;
