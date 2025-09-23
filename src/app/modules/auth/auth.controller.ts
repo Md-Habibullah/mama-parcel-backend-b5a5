@@ -7,9 +7,9 @@ import { AuthServices } from "./auth.service"
 import AppError from "../../errorHelpers/AppError"
 import { setAuthCookie } from "../../utils/setCookie"
 import { JwtPayload } from "jsonwebtoken"
-import { createUserToken } from "../../utils/userToken"
 import { envVars } from "../../config/env"
 import passport from "passport"
+import { createUserTokens } from "../../utils/userToken"
 
 const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -25,20 +25,29 @@ const credentialsLogin = catchAsync(async (req: Request, res: Response, next: Ne
             return next(new AppError(httpStatus.BAD_REQUEST, info.message))
         }
 
-        const { accessToken, refreshToken } = await createUserToken(user)
+        // const userTokens = await createUserTokens(user)
+
+        // // delete user.toObject().password
+
+        // const { password: pass, ...users } = user.toObject()
+
+
+        // setAuthCookie(res, userTokens)
+
+        const userTokens = await createUserTokens(user)
 
         // delete user.toObject().password
         const { password: userpass, ...users } = user.toObject()
 
-        setAuthCookie(res, { accessToken, refreshToken })
+        setAuthCookie(res, userTokens)
 
         sendResponse(res, {
             statusCode: httpStatus.OK,
             message: 'User Login Successfully',
             success: true,
             data: {
-                accessToken,
-                refreshToken,
+                accessToken: userTokens.accessToken,
+                refreshToken: userTokens.refreshToken,
                 user: users
             },
         })
@@ -71,8 +80,8 @@ const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: N
 
 const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    res.clearCookie('accessToken', { httpOnly: true, secure: false, sameSite: 'lax' })
-    res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'lax' })
+    res.clearCookie('accessToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) })
+    res.clearCookie('refreshToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) })
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -113,7 +122,7 @@ const googleCallbackController = catchAsync(async (req: Request, res: Response, 
         throw new AppError(httpStatus.NOT_FOUND, 'No user found')
     }
 
-    const tokenInfo = await createUserToken(user)
+    const tokenInfo = await createUserTokens(user)
     // console.log(tokenInfo)
 
     setAuthCookie(res, tokenInfo)

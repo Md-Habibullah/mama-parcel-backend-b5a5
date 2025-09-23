@@ -82,6 +82,18 @@ const getParcelsBySender = async (senderId: string, query: Record<string, string
     return { meta, data: result };
 };
 
+const getReceiverIdByEmail = async (email: string) => {
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new AppError(httpStatus.FORBIDDEN, "User not exists");
+    }
+
+    if (user.role !== "RECEIVER") {
+        throw new AppError(httpStatus.FORBIDDEN, "This user is not able to receive the parcel");
+    }
+    return user;
+}
+
 // receiver
 const getParcelsByReceiver = async (receiverId: string, query: Record<string, string>) => {
     const queryBuilder = new QueryBuilder(Parcel.find({ receiver: receiverId }).populate("sender", "name email"), query)
@@ -138,7 +150,10 @@ const getDeliveryHistoryByReceiver = async (receiverId: string, query: Record<st
 
 // Admin
 const getAllParcels = async (query: Record<string, string>) => {
-    const queryBuilder = new QueryBuilder(Parcel.find().populate("sender receiver", "name email"), query)
+    const queryBuilder = new QueryBuilder(
+        Parcel.find().populate("sender", "name email").populate("receiver", "name email"),
+        query
+    )
         .filter()
         .search(["trackingId", "parcelType", "pickupAddress", "deliveryAddress"])
         .sort()
@@ -151,9 +166,13 @@ const getAllParcels = async (query: Record<string, string>) => {
     return { meta, data: result };
 };
 
+
+
 const updateParcelStatus = async (adminId: string, parcelId: string, status: ParcelStatus, note?: string) => {
     const parcel = await Parcel.findById(parcelId);
     if (!parcel) throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
+
+    if (parcel.isBlocked) throw new AppError(httpStatus.NOT_FOUND, "Parcel is blocked");
 
     if (parcel.currentStatus === ParcelStatus.CANCELED) {
         throw new AppError(httpStatus.BAD_REQUEST, "Canceled parcel cannot be updated");
@@ -190,18 +209,34 @@ const toggleBlockParcel = async (adminId: string, parcelId: string) => {
 };
 
 const getStats = async () => {
-    const total = await Parcel.countDocuments();
+    const totalUsers = await User.countDocuments();
+    const totalParcels = await Parcel.countDocuments();
+    const deliveredParcels = await Parcel.countDocuments({ currentStatus: ParcelStatus.DELIVERED });
+    const cancelledParcels = await Parcel.countDocuments({ currentStatus: ParcelStatus.CANCELED });
     const delivered = await Parcel.countDocuments({ currentStatus: ParcelStatus.DELIVERED });
     const canceled = await Parcel.countDocuments({ currentStatus: ParcelStatus.CANCELED });
     const inTransit = await Parcel.countDocuments({ currentStatus: ParcelStatus.IN_TRANSIT });
+    const pendingParcels = totalParcels - (deliveredParcels + cancelledParcels + inTransit);
 
-    return { total, delivered, canceled, inTransit };
+    return {
+        totalUsers,
+        totalParcels,
+        pendingParcels,
+        inTransit,
+        delivered,
+        canceled,
+    };
 };
 
 // for all
 const getParcelById = async (parcelId: string) => {
 
-    const parcel = await Parcel.findById(parcelId).populate("sender receiver", "name email");
+    const parcel = await Parcel.findById(parcelId)
+        .populate("sender receiver", "name email")
+        .populate({
+            path: "statusLogs.updatedBy",
+            select: "name email"
+        });
 
     if (!parcel) throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
 
@@ -210,7 +245,11 @@ const getParcelById = async (parcelId: string) => {
 
 const trackParcel = async (trackingId: string) => {
     const parcel = await Parcel.findOne({ trackingId })
-        .select("trackingId currentStatus statusLogs pickupAddress deliveryAddress");
+        .populate("sender", "name email").populate("receiver", "name email").populate({
+            path: "statusLogs.updatedBy",
+            select: "name email"
+        });
+    // .select("trackingId currentStatus statusLogs pickupAddress deliveryAddress");
     if (!parcel) {
         throw new AppError(httpStatus.NOT_FOUND, "Parcel not found");
     }
@@ -253,6 +292,7 @@ export const ParcelServices = {
     createParcel,
     cancelParcel,
     getParcelsBySender,
+    getReceiverIdByEmail,
     getParcelsByReceiver,
     confirmDelivery,
     getAllParcels,

@@ -3,7 +3,7 @@ import { IUser } from "../user/user.interface"
 import { User } from "../user/user.model"
 import httpStatus from 'http-status-codes'
 import bcryptjs from 'bcryptjs'
-import { createNewAccessTokenWithRefreshToken, createUserToken } from "../../utils/userToken"
+import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userToken"
 import { JwtPayload } from "jsonwebtoken"
 import { envVars } from "../../config/env"
 
@@ -12,7 +12,7 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
 
     const isUserExist = await User.findOne({ email })
     if (!isUserExist) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Email does not exist')
+        throw new AppError(httpStatus.BAD_REQUEST, 'User does not exist')
     }
 
     if (isUserExist.isActive === 'BLOCKED' || isUserExist.isDeleted) {
@@ -22,10 +22,10 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
     const isPasswordMatch = await bcryptjs.compare(password as string, isUserExist.password as string)
 
     if (!isPasswordMatch) {
-        throw new AppError(httpStatus.BAD_REQUEST, 'Incorrect Password')
+        throw new AppError(httpStatus.BAD_REQUEST, 'Password does not matched')
     }
 
-    const userToken = createUserToken(isUserExist)
+    const userToken = createUserTokens(isUserExist)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: userpass, ...users } = isUserExist.toObject()

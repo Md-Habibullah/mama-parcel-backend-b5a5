@@ -83,6 +83,16 @@ const getParcelsBySender = (senderId, query) => __awaiter(void 0, void 0, void 0
     const meta = yield queryBuilder.getMeta();
     return { meta, data: result };
 });
+const getReceiverIdByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findOne({ email });
+    if (!user) {
+        throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "User not exists");
+    }
+    if (user.role !== "RECEIVER") {
+        throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "This user is not able to receive the parcel");
+    }
+    return user;
+});
 // receiver
 const getParcelsByReceiver = (receiverId, query) => __awaiter(void 0, void 0, void 0, function* () {
     const queryBuilder = new QueryBuilder_1.QueryBuilder(parcel_model_1.Parcel.find({ receiver: receiverId }).populate("sender", "name email"), query)
@@ -128,7 +138,7 @@ const getDeliveryHistoryByReceiver = (receiverId, query) => __awaiter(void 0, vo
 });
 // Admin
 const getAllParcels = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(parcel_model_1.Parcel.find().populate("sender receiver", "name email"), query)
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(parcel_model_1.Parcel.find().populate("sender", "name email").populate("receiver", "name email"), query)
         .filter()
         .search(["trackingId", "parcelType", "pickupAddress", "deliveryAddress"])
         .sort()
@@ -142,6 +152,8 @@ const updateParcelStatus = (adminId, parcelId, status, note) => __awaiter(void 0
     const parcel = yield parcel_model_1.Parcel.findById(parcelId);
     if (!parcel)
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Parcel not found");
+    if (parcel.isBlocked)
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Parcel is blocked");
     if (parcel.currentStatus === parcel_interface_1.ParcelStatus.CANCELED) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Canceled parcel cannot be updated");
     }
@@ -170,22 +182,42 @@ const toggleBlockParcel = (adminId, parcelId) => __awaiter(void 0, void 0, void 
     return parcel;
 });
 const getStats = () => __awaiter(void 0, void 0, void 0, function* () {
-    const total = yield parcel_model_1.Parcel.countDocuments();
+    const totalUsers = yield user_model_1.User.countDocuments();
+    const totalParcels = yield parcel_model_1.Parcel.countDocuments();
+    const deliveredParcels = yield parcel_model_1.Parcel.countDocuments({ currentStatus: parcel_interface_1.ParcelStatus.DELIVERED });
+    const cancelledParcels = yield parcel_model_1.Parcel.countDocuments({ currentStatus: parcel_interface_1.ParcelStatus.CANCELED });
     const delivered = yield parcel_model_1.Parcel.countDocuments({ currentStatus: parcel_interface_1.ParcelStatus.DELIVERED });
     const canceled = yield parcel_model_1.Parcel.countDocuments({ currentStatus: parcel_interface_1.ParcelStatus.CANCELED });
     const inTransit = yield parcel_model_1.Parcel.countDocuments({ currentStatus: parcel_interface_1.ParcelStatus.IN_TRANSIT });
-    return { total, delivered, canceled, inTransit };
+    const pendingParcels = totalParcels - (deliveredParcels + cancelledParcels + inTransit);
+    return {
+        totalUsers,
+        totalParcels,
+        pendingParcels,
+        inTransit,
+        delivered,
+        canceled,
+    };
 });
 // for all
 const getParcelById = (parcelId) => __awaiter(void 0, void 0, void 0, function* () {
-    const parcel = yield parcel_model_1.Parcel.findById(parcelId).populate("sender receiver", "name email");
+    const parcel = yield parcel_model_1.Parcel.findById(parcelId)
+        .populate("sender receiver", "name email")
+        .populate({
+        path: "statusLogs.updatedBy",
+        select: "name email"
+    });
     if (!parcel)
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Parcel not found");
     return parcel;
 });
 const trackParcel = (trackingId) => __awaiter(void 0, void 0, void 0, function* () {
     const parcel = yield parcel_model_1.Parcel.findOne({ trackingId })
-        .select("trackingId currentStatus statusLogs pickupAddress deliveryAddress");
+        .populate("sender", "name email").populate("receiver", "name email").populate({
+        path: "statusLogs.updatedBy",
+        select: "name email"
+    });
+    // .select("trackingId currentStatus statusLogs pickupAddress deliveryAddress");
     if (!parcel) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Parcel not found");
     }
@@ -218,6 +250,7 @@ exports.ParcelServices = {
     createParcel,
     cancelParcel,
     getParcelsBySender,
+    getReceiverIdByEmail,
     getParcelsByReceiver,
     confirmDelivery,
     getAllParcels,

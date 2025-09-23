@@ -47,6 +47,18 @@ const getMyParcels = catchAsync(async (req: Request, res: Response, next: NextFu
     });
 });
 
+const getReceiverIdByEmail = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.params;
+    const result = await ParcelServices.getReceiverIdByEmail(email)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        message: "Retreve receiver id by email successfully",
+        success: true,
+        data: result,
+    });
+})
+
 // receiver
 const getIncomingParcels = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const receiverId = (req.user as JwtPayload).userId;
@@ -188,6 +200,7 @@ export const ParcelControllers = {
     createParcel,
     cancelParcel,
     getMyParcels,
+    getReceiverIdByEmail,
     getIncomingParcels,
     confirmDelivery,
     getAllParcels,

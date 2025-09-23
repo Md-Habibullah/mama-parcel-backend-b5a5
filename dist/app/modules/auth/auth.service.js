@@ -34,16 +34,16 @@ const credentialsLogin = (payload) => __awaiter(void 0, void 0, void 0, function
     const { email, password } = payload;
     const isUserExist = yield user_model_1.User.findOne({ email });
     if (!isUserExist) {
-        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, 'Email does not exist');
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, 'User does not exist');
     }
     if (isUserExist.isActive === 'BLOCKED' || isUserExist.isDeleted) {
         throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, 'User is blocked or deleted');
     }
     const isPasswordMatch = yield bcryptjs_1.default.compare(password, isUserExist.password);
     if (!isPasswordMatch) {
-        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, 'Incorrect Password');
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, 'Password does not matched');
     }
-    const userToken = (0, userToken_1.createUserToken)(isUserExist);
+    const userToken = (0, userToken_1.createUserTokens)(isUserExist);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _a = isUserExist.toObject(), { password: userpass } = _a, users = __rest(_a, ["password"]);
     return {

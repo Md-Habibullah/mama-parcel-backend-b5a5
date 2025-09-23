@@ -50,6 +50,16 @@ const getMyParcels = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(
         data: result.data,
     });
 }));
+const getReceiverIdByEmail = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email } = req.params;
+    const result = yield parcel_service_1.ParcelServices.getReceiverIdByEmail(email);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.default.OK,
+        message: "Retreve receiver id by email successfully",
+        success: true,
+        data: result,
+    });
+}));
 // receiver
 const getIncomingParcels = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const receiverId = req.user.userId;
@@ -164,6 +174,7 @@ exports.ParcelControllers = {
     createParcel,
     cancelParcel,
     getMyParcels,
+    getReceiverIdByEmail,
     getIncomingParcels,
     confirmDelivery,
     getAllParcels,

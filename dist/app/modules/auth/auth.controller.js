@@ -30,9 +30,9 @@ const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const auth_service_1 = require("./auth.service");
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
 const setCookie_1 = require("../../utils/setCookie");
-const userToken_1 = require("../../utils/userToken");
 const env_1 = require("../../config/env");
 const passport_1 = __importDefault(require("passport"));
+const userToken_1 = require("../../utils/userToken");
 const credentialsLogin = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     passport_1.default.authenticate("local", (err, user, info) => __awaiter(void 0, void 0, void 0, function* () {
@@ -43,17 +43,21 @@ const credentialsLogin = (0, catchAsync_1.catchAsync)((req, res, next) => __awai
             // return new AppError(404, 'User does not exist')
             return next(new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, info.message));
         }
-        const { accessToken, refreshToken } = yield (0, userToken_1.createUserToken)(user);
+        // const userTokens = await createUserTokens(user)
+        // // delete user.toObject().password
+        // const { password: pass, ...users } = user.toObject()
+        // setAuthCookie(res, userTokens)
+        const userTokens = yield (0, userToken_1.createUserTokens)(user);
         // delete user.toObject().password
         const _a = user.toObject(), { password: userpass } = _a, users = __rest(_a, ["password"]);
-        (0, setCookie_1.setAuthCookie)(res, { accessToken, refreshToken });
+        (0, setCookie_1.setAuthCookie)(res, userTokens);
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.default.OK,
             message: 'User Login Successfully',
             success: true,
             data: {
-                accessToken,
-                refreshToken,
+                accessToken: userTokens.accessToken,
+                refreshToken: userTokens.refreshToken,
                 user: users
             },
         });
@@ -79,8 +83,8 @@ const getNewAccessToken = (0, catchAsync_1.catchAsync)((req, res, next) => __awa
     });
 }));
 const logout = (0, catchAsync_1.catchAsync)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    res.clearCookie('accessToken', { httpOnly: true, secure: false, sameSite: 'lax' });
-    res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'lax' });
+    res.clearCookie('accessToken', { httpOnly: true, secure: env_1.envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) });
+    res.clearCookie('refreshToken', { httpOnly: true, secure: env_1.envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) });
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.default.OK,
         message: 'User Logout Successfully',
@@ -111,7 +115,7 @@ const googleCallbackController = (0, catchAsync_1.catchAsync)((req, res, next) =
     if (!user) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, 'No user found');
     }
-    const tokenInfo = yield (0, userToken_1.createUserToken)(user);
+    const tokenInfo = yield (0, userToken_1.createUserTokens)(user);
     // console.log(tokenInfo)
     (0, setCookie_1.setAuthCookie)(res, tokenInfo);
     res.redirect(`${env_1.envVars.FRONTEND_URL}/${redirectTo}`);

@@ -11,6 +11,7 @@ const router = Router();
 router.post("/", checkAuth(Role.SENDER), validateRequest(createParcelZodSchema), ParcelControllers.createParcel);
 router.patch("/cancel/:id", checkAuth(Role.SENDER), ParcelControllers.cancelParcel);
 router.get("/my-parcels", checkAuth(Role.SENDER), ParcelControllers.getMyParcels);
+router.get("/find-by-email/:email", checkAuth(Role.SENDER), ParcelControllers.getReceiverIdByEmail);
 
 // receiver
 router.get("/incoming", checkAuth(Role.RECEIVER), ParcelControllers.getIncomingParcels);
