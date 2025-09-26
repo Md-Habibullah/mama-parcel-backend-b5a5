@@ -80,8 +80,8 @@ const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: N
 
 const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    res.clearCookie('accessToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) })
-    res.clearCookie('refreshToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none', expires: new Date(0) })
+    res.clearCookie('accessToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none' })
+    res.clearCookie('refreshToken', { httpOnly: true, secure: envVars.NODE_ENV === "production", sameSite: 'none' })
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
