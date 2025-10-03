@@ -8,7 +8,8 @@ export const createParcelZodSchema = z.object({
 
     parcelType: z
         .string({ required_error: "Parcel type is required" })
-        .min(2, "Parcel type must be at least 2 characters long"),
+        .min(2, "Parcel type must be at least 2 characters long")
+        .max(20, "Parcel type must be lower than 20 character"),
 
     weight: z
         .number({ required_error: "Weight is required" })
@@ -16,11 +17,13 @@ export const createParcelZodSchema = z.object({
 
     pickupAddress: z
         .string({ required_error: "Pickup address is required" })
-        .min(5, "Pickup address must be at least 5 characters"),
+        .min(5, "Pickup address must be at least 5 characters")
+        .max(20, "pickupAddress must be lower than 20 character"),
 
     deliveryAddress: z
         .string({ required_error: "Delivery address is required" })
-        .min(5, "Delivery address must be at least 5 characters"),
+        .min(5, "Delivery address must be at least 5 characters")
+        .max(20, "deliveryAddress must be lower than 20 character"),
 
     fee: z
         .number({ required_error: "Fee is required" })
