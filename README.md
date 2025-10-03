@@ -81,7 +81,7 @@ GOOGLE_CALLBACK_URL=http://<callback-url>
 EXPRESS_SESSION_SECRET=express-session
 
 # Frontend
-FRONTEND_URL=http://<frontend url>
+FRONTEND_URL=http://mamaparcel.vercel.app
 ```
 
 ### 4. Start the Server
