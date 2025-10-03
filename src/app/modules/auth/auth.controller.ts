@@ -65,8 +65,17 @@ const getNewAccessToken = catchAsync(async (req: Request, res: Response, next: N
 
 const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    res.clearCookie('accessToken', { httpOnly: true, secure: true, sameSite: 'none' })
-    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' })
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: envVars.NODE_ENV === 'production',
+        sameSite: 'none'
+    })
+
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: envVars.NODE_ENV === 'production',
+        sameSite: 'none'
+    })
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -94,7 +103,6 @@ const resetPassword = catchAsync(async (req: Request, res: Response, next: NextF
 const googleCallbackController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
     const user = req.user;
-    // console.log(user)
     let redirectTo = req.query.state ? req.query.state as string : '';
 
     if (redirectTo.startsWith('/')) {
@@ -108,7 +116,6 @@ const googleCallbackController = catchAsync(async (req: Request, res: Response, 
     }
 
     const tokenInfo = await createUserTokens(user)
-    // console.log(tokenInfo)
 
     setAuthCookie(res, tokenInfo)
 
