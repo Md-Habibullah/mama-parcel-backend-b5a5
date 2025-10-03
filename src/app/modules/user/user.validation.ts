@@ -3,9 +3,10 @@ import { IsActive, Role } from "./user.interface";
 
 export const createUserZodSchema = z.object({
     name: z.string().min(2).max(50),
-    email: z.string().email().min(5).max(100),
+    email: z.string().email().min(5).max(50),
     password: z.string()
         .min(8)
+        .max(20)
         .regex(/^(?=.*[A-Z])/, "Password must contain at least 1 uppercase letter.")
         .regex(/^(?=.*[!@#$%^&*])/, "Password must contain at least 1 special character.")
         .regex(/^(?=.*\d)/, "Password must contain at least 1 number."),
